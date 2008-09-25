@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libspeutils
+Description: General purpose Spu Library
+Version: @VERSION@
+Requires: libspe2
+Libs: -lspeutils
+Cflags: -I${includedir}/speutils
