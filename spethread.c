@@ -31,7 +31,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "spethread.h"
+#include <speutils/spethread.h>
 
 /**
  * Function defines a general purpose spu thread

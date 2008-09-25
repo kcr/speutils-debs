@@ -1,20 +1,20 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-m4_define([major_version], [0])
-m4_define([minor_version], [0])
-m4_define([micro_version], [1])
-m4_define([interface_age], [0])
-m4_define([binary_age],
-          [m4_eval(minor_version + micro_version)])
-m4_define([version],
-          [major_version.minor_version.micro_version])
-m4_define([lt_current],
-          [m4_eval(minor_version + micro_version - interface_age)])
-m4_define([lt_revision], [interface_age])
-m4_define([lt_age], [m4_eval(binary_age - interface_age)])
+m4_define([speutils_major_version], [0])
+m4_define([speutils_minor_version], [0])
+m4_define([speutils_micro_version], [1])
+m4_define([speutils_interface_age], [1])
+m4_define([speutils_binary_age],
+          [m4_eval(speutils_minor_version + speutils_micro_version)])
+m4_define([speutils_version],
+          [speutils_major_version.speutils_minor_version.speutils_micro_version])
+m4_define([speutils_lt_current],
+          [m4_eval(speutils_minor_version + speutils_micro_version - speutils_interface_age)])
+m4_define([speutils_lt_revision], [speutils_interface_age])
+m4_define([speutils_lt_age], [m4_eval(speutils_binary_age - speutils_interface_age)])
 
 AC_PREREQ(2.61)
-AC_INIT(speutils, [version], somewhere)
+AC_INIT(speutils, [speutils_version], somewhere)
 # Checks for programs.
 AM_INIT_AUTOMAKE
 
@@ -47,17 +47,17 @@ PKG_CHECK_MODULES(LIBSPE2, [libspe2 >= 2.2.0])
 CFLAGS="$CFLAGS $LIBSPE2_CFLAGS"
 LIBS="$LIBS $LIBSPE2_LIBS"
 
-LT_CURRENT=lt_current
-LT_REVISION=lt_revision
-LT_AGE=lt_age
+LT_CURRENT=speutils_lt_current
+LT_REVISION=speutils_lt_revision
+LT_AGE=speutils_lt_age
 
 AC_SUBST(LT_CURRENT)
 AC_SUBST(LT_REVISION)
 AC_SUBST(LT_AGE)
 
 
-AC_CONFIG_FILES([libspu-medialib.pc])
+AC_CONFIG_FILES([libspeutils.pc])
 # additional configure for spu stuff
-AC_CONFIG_SUBDIRS([spu])
+# No spu code to compile yet.. AC_CONFIG_SUBDIRS([spu])
 
 AC_OUTPUT()

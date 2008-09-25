@@ -31,7 +31,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "spemessage.h"
+#include <speutils/spemessage.h>
 
 /**
  * Sends the message to the spu_thread specified
