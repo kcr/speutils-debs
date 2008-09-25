@@ -3,7 +3,8 @@ INCLUDES = -Iinclude
 libspeincludedir = $(includedir)/../spu-elf/include/speutils
 
 libspeinclude_HEADERS = include/speutils/spu_message.h \
-			include/speutils/messages.h
+			include/speutils/messages.h \
+			include/speutils/spu_dmalib.h
 
 libincludedir = $(includedir)/speutils
 
