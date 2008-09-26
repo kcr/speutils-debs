@@ -84,20 +84,22 @@ static inline void dmaWaitTag(int tag)
  * Function waits for all the given dma tags in uiMask to be done"
  * @param uiMask dma tag mask
  */
-static inline void dmaWaitAll(unsigned int uiMask) {
+static inline int dmaWaitAll(unsigned int uiMask) {
 
 	mfc_write_tag_mask(uiMask);
 	mfc_read_tag_status_all();
+
 }
 
 /**
  * Function waits for any of the tags given is Mask to appear
  * @param uiMask dma tag mask
+ * @return returns the tag status
  */
 static inline void dmaWaitAny(unsigned int uiMask) {
 
 	mfc_write_tag_mask(uiMask);
-	mfc_read_tag_status_any();
+	return mfc_read_tag_status_any();
 }
 
 /**
@@ -324,7 +326,7 @@ static inline atomicPutuc(void *localstore, unsigned long long extern_adr) {
  */
 static inline atomicqPutuc(void *localstore, unsigned long long extern_adr, uint32_t tag ) {
 	/**perform store */
-	mfc_putlluc(localstore,extern_adr,tag,0,0);
+	mfc_putqlluc(localstore,extern_adr,tag,0,0);
 	/**wait for completion*/
 }
 
