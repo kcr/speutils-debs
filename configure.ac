@@ -41,7 +41,8 @@ AC_TYPE_UINT8_T
 # Checks for library functions.
 AC_CHECK_FUNCS([gettimeofday sqrt])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+		src/Makefile])
 # we need libspe2
 PKG_CHECK_MODULES(LIBSPE2, [libspe2 >= 2.2.0])
 CFLAGS="$CFLAGS $LIBSPE2_CFLAGS"
