@@ -1,10 +1,5 @@
-INCLUDES = -Iinclude
+SUBDIRS = src spu
 
-libspeincludedir = $(includedir)/../spu-elf/include/speutils
-
-libspeinclude_HEADERS = include/speutils/spu_message.h \
-			include/speutils/messages.h \
-			include/speutils/spu_dmalib.h
 
 libincludedir = $(includedir)/speutils
 
@@ -13,7 +8,8 @@ libinclude_HEADERS = include/speutils/messages.h \
 			include/speutils/spethread.h
 
 lib_LTLIBRARIES = libspeutils.la
-libspeutils_la_SOURCES = spemessage.c spemessage.h spethread.c spethread.h
+libspeutils_la_LIBADD = src/libspemessage.la src/libspethread.la
+libspeutils_la_SOURCES =
 libspeutils_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
 pkgconfigdir = ${libdir}/pkgconfig

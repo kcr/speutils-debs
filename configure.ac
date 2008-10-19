@@ -58,6 +58,7 @@ AC_SUBST(LT_AGE)
 
 AC_CONFIG_FILES([libspeutils.pc])
 # additional configure for spu stuff
-# No spu code to compile yet.. AC_CONFIG_SUBDIRS([spu])
+# No spu code to compile yet.. 
+AC_CONFIG_SUBDIRS([spu])
 
 AC_OUTPUT()

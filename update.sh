@@ -36,6 +36,11 @@ enter_folder() {
 	fi
 }
 
+enter_folder "spu"
+
+autotools
+
+cd ..
 
 autotools
 
