@@ -2,6 +2,7 @@
 
 #include <speutils/spethread.h>
 #include <speutils/spemessage.h>
+#include <malloc.h>
 
 #include "example2.h"
 
@@ -26,7 +27,7 @@ int main (int narg, char *argv[]) {
 	struct example2_s *ex2;
 
 	/** allocate the example data in ram */
-	ex2=(struct example2_s *)memalign(128,sizeof(struct example2_s));
+	ex2=memalign(128,sizeof(struct example2_s));
 
 	/** We set some value to the example data */
 	ex2->myint=1;

@@ -1,5 +1,6 @@
 #include <speutils/spethread.h>
 #include <speutils/spemessage.h>
+#include <malloc.h>
 
 #include "example1.h"
 
@@ -11,7 +12,7 @@ int main (int narg, char *argv[]) {
 	struct example1_s *ex1;
 
 	/** allocate the example data in ram */
-	ex1=(struct example1_s *)memalign(128,sizeof(struct example1_s));
+	ex1=memalign(128,sizeof(struct example1_s));
 
 	/** We set some value to the example data */
 	ex1->myint=1;
