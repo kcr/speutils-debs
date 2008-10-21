@@ -5,7 +5,7 @@ if test -d "/usr/spu-elf"; then
 	AC_PROG_CC(spu-elf-gcc)
 
 else
-	host-alias=spu
+	host_alias=spu
 	AC_PROG_CC(spu-gcc)
 
 fi

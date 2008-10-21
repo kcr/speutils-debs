@@ -35,6 +35,8 @@
 #ifndef __SPU_MESSAGE_H
 #define __SPU_MESSAGE_H
 
+#include <spu_mfcio.h>
+
 #include <speutils/messages.h>
 
 static inline void send_message_int(int *message){

@@ -1,6 +1,7 @@
 /**
  * @file spu_dmalib.h
- * @brief This header defines inline functions for spu dma operations
+ * @brief This header defines functions for spu dma operations
+ * @brief To use the inline functions you must define SPU_DMALIB_STATIC
  * @brief this file is a part of speutils
  * @author Kristian jerpetjøn
  *
@@ -37,6 +38,7 @@
 #define __SPU_DMALIB_H
 
 #include <spu_mfcio.h>
+
 typedef unsigned int uint32_t;
 
 /**
@@ -46,7 +48,10 @@ typedef unsigned int uint32_t;
  * @param size size of the dma job in bytes
  * @param tag dma tag
  */
-static inline void dmaGetnWait(void *localstore, unsigned long long extern_adr, uint32_t size, int tag)
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaGetnWait(void *localstore, unsigned long long extern_adr, uint32_t size, int tag)
 {
 	int uiMask=1<<tag;
 	mfc_get(localstore, extern_adr, size, tag, 0, 0);
@@ -61,7 +66,10 @@ static inline void dmaGetnWait(void *localstore, unsigned long long extern_adr, 
  * @param size size of the dma job in bytes
  * @param tag dma tag
  */
-static inline void dmaPutnWait(void *localstore, unsigned long long extern_adr, uint32_t size, int tag)
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaPutnWait(void *localstore, unsigned long long extern_adr, uint32_t size, int tag)
 {
 	int uiMask=1<<tag;
 	mfc_put(localstore, extern_adr, size, tag, 0, 0);
@@ -73,7 +81,10 @@ static inline void dmaPutnWait(void *localstore, unsigned long long extern_adr, 
  * Function only usable for waiting for a single tag
  * @param tag dma tag
  */
-static inline void dmaWaitTag(int tag)
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaWaitTag(int tag)
 {
 	int uiMask=1<<tag;
 	mfc_write_tag_mask(uiMask);
@@ -84,7 +95,10 @@ static inline void dmaWaitTag(int tag)
  * Function waits for all the given dma tags in uiMask to be done"
  * @param uiMask dma tag mask
  */
-static inline int dmaWaitAll(unsigned int uiMask) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+int dmaWaitAll(unsigned int uiMask) {
 
 	mfc_write_tag_mask(uiMask);
 	mfc_read_tag_status_all();
@@ -96,7 +110,10 @@ static inline int dmaWaitAll(unsigned int uiMask) {
  * @param uiMask dma tag mask
  * @return returns the tag status
  */
-static inline void dmaWaitAny(unsigned int uiMask) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaWaitAny(unsigned int uiMask) {
 
 	mfc_write_tag_mask(uiMask);
 	return mfc_read_tag_status_any();
@@ -109,7 +126,10 @@ static inline void dmaWaitAny(unsigned int uiMask) {
  * @param size size of the dma job in bytes
  * @param tag the tag for the job 1<<(0-31)
  */
-static inline void dmaGet(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaGet(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
 
 	mfc_get(localstore, extern_adr,size,tag, 0, 0);
 }
@@ -121,7 +141,10 @@ static inline void dmaGet(void *localstore, unsigned long long extern_adr, uint3
  * @param size size of the dma job in bytes
  * @param tag the tag for the job 1<<(0-31)
  */
-static inline void dmaGetb(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaGetb(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
 
 	mfc_getb(localstore, extern_adr, size, tag, 0, 0);
 }
@@ -134,7 +157,10 @@ static inline void dmaGetb(void *localstore, unsigned long long extern_adr, uint
  * @param size size of the dma job in bytes
  * @param tag the tag for the job 1<<(0-31)
  */
-static inline void dmaGetf(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaGetf(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
 
 	mfc_getf(localstore, extern_adr, size, tag, 0, 0);
 }
@@ -150,7 +176,10 @@ static inline void dmaGetf(void *localstore, unsigned long long extern_adr, uint
  * @param list_size the size of the list in entries
  * @param tag the dma tag for the list 1<<(0-31)
  */
-static inline void dmaGetl (void *ls, unsigned long long ea, mfc_list_element_t *list, uint32_t list_size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaGetl (void *ls, unsigned long long ea, mfc_list_element_t *list, uint32_t list_size, int tag) {
 
 	list_size=list_size*sizeof(mfc_list_element_t);
 	mfc_getl(ls, ea, list, list_size, tag,0,0);
@@ -167,7 +196,10 @@ static inline void dmaGetl (void *ls, unsigned long long ea, mfc_list_element_t 
  * @param list_size the size of the list in entries
  * @param tag the dma tag for the list 1<<(0-31)
  */
-static inline void dmaGetlb (void *ls, unsigned long long ea, mfc_list_element_t *list, uint32_t list_size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaGetlb (void *ls, unsigned long long ea, mfc_list_element_t *list, uint32_t list_size, int tag) {
 
 	list_size=list_size*sizeof(mfc_list_element_t);
 	mfc_getlb(ls, ea, list, list_size, tag,0,0);
@@ -184,7 +216,10 @@ static inline void dmaGetlb (void *ls, unsigned long long ea, mfc_list_element_t
  * @param list_size the size of the list in entries
  * @param tag the dma tag for the list 1<<(0-31)
  */
-static inline void dmaGetlf (void *ls, unsigned long long ea, mfc_list_element_t *list, uint32_t list_size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaGetlf (void *ls, unsigned long long ea, mfc_list_element_t *list, uint32_t list_size, int tag) {
 
 	list_size=list_size*sizeof(mfc_list_element_t);
 	mfc_getlf(ls, ea, list, list_size, tag,0,0);
@@ -195,7 +230,10 @@ static inline void dmaGetlf (void *ls, unsigned long long ea, mfc_list_element_t
  * @param localstore local address
  * @param extern_adr external address of the cache line
  */
-static inline void atomicGet(void *localstore, unsigned long long extern_adr) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void atomicGet(void *localstore, unsigned long long extern_adr) {
 
 	/**start fetch*/
 	mfc_getllar(localstore,extern_adr,0,0);
@@ -210,7 +248,10 @@ static inline void atomicGet(void *localstore, unsigned long long extern_adr) {
  * @param size size of the dma job in bytes
  * @param tag the tag for the job 1<<(0-31)
  */
-static inline void dmaPut(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaPut(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
 
 	mfc_put(localstore, extern_adr, size, tag, 0, 0);
 }
@@ -222,7 +263,10 @@ static inline void dmaPut(void *localstore, unsigned long long extern_adr, uint3
  * @param size size of the dma job in bytes
  * @param tag the tag for of the job 1<<(0-31)
  */
-static inline void dmaPutb(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaPutb(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
 
 	mfc_putb(localstore, extern_adr, size, tag, 0, 0);
 }
@@ -234,7 +278,10 @@ static inline void dmaPutb(void *localstore, unsigned long long extern_adr, uint
  * @param size size of the dma job in bytes
  * @param tag the tag for of the job 1<<(0-31)
  */
-static inline void dmaPutf(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaPutf(void *localstore, unsigned long long extern_adr, uint32_t size, int tag) {
 
 	mfc_putf(localstore, extern_adr, size, tag, 0, 0);
 }
@@ -250,7 +297,10 @@ static inline void dmaPutf(void *localstore, unsigned long long extern_adr, uint
  * @param list_size the size of the list in entries
  * @param tag the dma tag for the list 1<<(0-31)
  */
-static inline void dmaPutl (void *ls, uint64_t ea, mfc_list_element_t *list, uint32_t list_size, uint32_t tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaPutl (void *ls, uint64_t ea, mfc_list_element_t *list, uint32_t list_size, uint32_t tag) {
 
 	list_size=list_size*sizeof(mfc_list_element_t);
 	mfc_putl(ls,ea,list,list_size,tag,0,0);
@@ -267,7 +317,10 @@ static inline void dmaPutl (void *ls, uint64_t ea, mfc_list_element_t *list, uin
  * @param list_size the size of the list in entries
  * @param tag the dma tag for the list 1<<(0-31)
  */
-static inline void dmaPutlb (void *ls, uint64_t ea, mfc_list_element_t *list, uint32_t list_size, uint32_t tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaPutlb (void *ls, uint64_t ea, mfc_list_element_t *list, uint32_t list_size, uint32_t tag) {
 
 	list_size=list_size*sizeof(mfc_list_element_t);
 	mfc_putlb(ls,ea,list,list_size,tag,0,0);
@@ -284,7 +337,10 @@ static inline void dmaPutlb (void *ls, uint64_t ea, mfc_list_element_t *list, ui
  * @param list_size the size of the list in entries
  * @param tag the dma tag for the list 1<<(0-31)
  */
-static inline void dmaPutlf (void *ls, uint64_t ea, mfc_list_element_t *list, uint32_t list_size, uint32_t tag) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void dmaPutlf (void *ls, uint64_t ea, mfc_list_element_t *list, uint32_t list_size, uint32_t tag) {
 
 	list_size=list_size*sizeof(mfc_list_element_t);
 	mfc_putlf(ls,ea,list,list_size,tag,0,0);
@@ -297,7 +353,10 @@ static inline void dmaPutlf (void *ls, uint64_t ea, mfc_list_element_t *list, ui
  * @param extern_addr external adress of the cache line
  * @return returns 1 if successful
  */
-static inline int atomicPutc(void *localstore, unsigned long long extern_adr) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+int atomicPutc(void *localstore, unsigned long long extern_adr) {
 
 	/**perform store */
 	mfc_putllc(localstore,extern_adr,0,0);
@@ -310,7 +369,10 @@ static inline int atomicPutc(void *localstore, unsigned long long extern_adr) {
  * @param localstore local address
  * @param extern_adr external adress of the cache line
  */
-static inline atomicPutuc(void *localstore, unsigned long long extern_adr) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void atomicPutuc(void *localstore, unsigned long long extern_adr) {
 
 	/**perform store */
 	mfc_putlluc(localstore,extern_adr,0,0);
@@ -324,7 +386,10 @@ static inline atomicPutuc(void *localstore, unsigned long long extern_adr) {
  * @param extern_adr external address (destination)
  * @param tag dma tag 1<<(0-31)
  */
-static inline atomicqPutuc(void *localstore, unsigned long long extern_adr, uint32_t tag ) {
+#ifdef SPU_DMALIB_STATIC
+static inline
+#endif
+void atomicqPutuc(void *localstore, unsigned long long extern_adr, uint32_t tag ) {
 	/**perform store */
 	mfc_putqlluc(localstore,extern_adr,tag,0,0);
 	/**wait for completion*/

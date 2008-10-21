@@ -35,15 +35,21 @@
 #define __SPU_THREAD_H
 
 #include <pthread.h>
-#include <malloc.h>
+
 #include <stdint.h>
-#include <malloc.h>
 
 #include <libspe2.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** Various actions to issue to a looping thread */
+enum actions {THREAD_EXIT,THREAD_CONTINUE};
+
+/** Types of threads we can run */
+enum thread_type{THREAD_LOOP,THREAD_RUN};
+
 /** spu thread structure is a generalized structure \n
  * and should be extended to include any future extensions
  */
@@ -79,8 +85,25 @@ struct spu_thread_s {
 
 	/** spe event unit */
 	struct spe_event_unit event;
+
 	/** spe event handler*/
 	spe_event_handler_ptr_t spe_event;
+
+	/** callback issued by returning thread */
+	void (*callback)(int arg);
+
+	/** condition variable used to sleep thread */
+	pthread_cond_t condvar;
+
+	/** mutex to go with the cond variable */
+	pthread_mutex_t mutex;
+
+	/** type of thread you are running see thread_type */
+	int type;
+
+	/** The action issued after a callback */
+	int action;
+
 
 };
 
@@ -88,9 +111,15 @@ typedef struct spu_thread_s spu_thread_t;
 
 int start_spu_thread(spu_thread_t *spu);
 
+
+
 int stop_spu_thread(spu_thread_t *spu);
 
-void *spu_thread(void *arg);
+void send_action(spu_thread_t *spu);
+
+// void send_action(spu_thread_t *spu);
+
+// void *spu_thread(void *arg);
 
 #ifdef __cplusplus
 }
