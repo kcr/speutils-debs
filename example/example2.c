@@ -18,6 +18,7 @@ void callback(int value) {
 	pthread_mutex_lock(&mutex);
 	pthread_cond_broadcast(&condvar);
 	pthread_mutex_unlock(&mutex);
+	printf("PPU: Callback complete %d\n");
 
 }
 
@@ -75,17 +76,20 @@ int main (int narg, char *argv[]) {
 
 	//	msg = recieve_message_int(&sput);
 		printf("PPU: Message Recieved from SPU\nContinue y / n\n");
+
 		cptr=fgets(buffer,255,stdin);
 
 		/** send message back to the spu */
 		if ((cptr[0] == 'y' ) || ( cptr[0] == 'Y')) {
 			printf("PPU: Continue\n");
-			sput.action=THREAD_CONTINUE;
-			send_action(&sput);
+			//sput.action=THREAD_CONTINUE;
+			int msg=THREAD_CONTINUE;
+			send_action(&sput,msg);
 		} else {
 			printf("PPU: Exit\n");
-			sput.action=THREAD_EXIT;
-			send_action(&sput);
+			//sput.action=THREAD_EXIT;
+			int msg=THREAD_EXIT;
+			send_action(&sput,msg);
 			break;
 		}
 

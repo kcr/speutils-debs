@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 /** Various actions to issue to a looping thread */
-enum actions {THREAD_EXIT,THREAD_CONTINUE};
+enum actions {THREAD_EXIT, THREAD_CONTINUE};
 
 /** Types of threads we can run */
 enum thread_type{THREAD_LOOP,THREAD_RUN};
@@ -98,6 +98,13 @@ struct spu_thread_s {
 	/** mutex to go with the cond variable */
 	pthread_mutex_t mutex;
 
+	int epfd;
+
+	struct epoll_event *events;
+
+	int pipe[2];
+
+
 	/** type of thread you are running see thread_type */
 	int type;
 
@@ -115,7 +122,7 @@ int start_spu_thread(spu_thread_t *spu);
 
 int stop_spu_thread(spu_thread_t *spu);
 
-void send_action(spu_thread_t *spu);
+void send_action(spu_thread_t *spu, int action);
 
 // void send_action(spu_thread_t *spu);
 

@@ -33,6 +33,11 @@
 
 #include <speutils/spethread.h>
 #include <malloc.h>
+#include <string.h>
+#include <sys/epoll.h>
+
+#define MAX_EVENTS 2
+
 /**
  * Function defines a general purpose spu thread
  * @param arg arguments from the thread in spu_thread_s
@@ -71,6 +76,25 @@ void *spu_loop_thread(void *arg) {
 
 	spu=(spu_thread_t *)arg;
 
+	spu->epfd = epoll_create(MAX_EVENTS);
+
+	spu->events = malloc(sizeof(struct epoll_event)*MAX_EVENTS);
+
+
+
+	struct epoll_event ev;
+
+	ev.data.fd=spu->pipe[0];
+
+	ev.events=EPOLLIN|EPOLLERR;
+
+	if (epoll_ctl(spu->epfd, EPOLL_CTL_ADD, spu->pipe[0], &ev) < 0) {
+		fprintf(stderr, "epoll set insertion error: fd=%d\n",
+			spu->pipe[0]);
+		pthread_exit(NULL);
+	}
+
+
 	if (spe_program_load(spu->ctx,&spu->handle) < 0)
 	{
 		perror("error loading spu-elf program\n");
@@ -88,12 +112,28 @@ void *spu_loop_thread(void *arg) {
 
 		spu->callback(spu->stop_info.result.spe_signal_code);
 
-		// We could have done this using epoll or some other wait structure but this is the least code..
+		// Look at how much better it looks and feels using epoll.. ps this can still stall
+		int res ;
 
-		pthread_mutex_lock(&spu->mutex);
-		pthread_cond_wait(&spu->condvar, &spu->mutex);
-		pthread_mutex_unlock(&spu->mutex);
+		int i;
 
+		int waiting =1;
+
+		while (waiting)
+		{
+			res = epoll_wait( spu->epfd, spu->events, MAX_EVENTS, -1);
+
+			for (i = 0 ; i < res ; i++ ){
+
+				if ( spu->events[i].data.fd == spu->pipe[0] ) {
+
+					read( spu->pipe[0] , &spu->action, sizeof(int) );
+					waiting=0;
+					break;
+
+				}
+			}
+		}
 
 		if (spu->action ==  THREAD_EXIT ) {
 			break;
@@ -129,6 +169,7 @@ int start_spu_thread(spu_thread_t *spu) {
 	switch (spu->type) {
 
 		case THREAD_LOOP:
+			pipe(spu->pipe); //event notification pipe :)
 			spu->thread_id=pthread_create(&spu->pts,NULL,spu_loop_thread,spu);
 			break;
 
@@ -161,12 +202,15 @@ int stop_spu_thread(spu_thread_t *spu) {
 
 	spe_context_destroy(spu->ctx);
 
+	free(spu->events);
+
+	close(spu->pipe);
+
 	return 0;
 }
 
-void send_action(spu_thread_t *spu) {
+void send_action(spu_thread_t *spu, int action) {
 
-	pthread_mutex_lock(&spu->mutex);
-	pthread_cond_broadcast(&spu->condvar);
-	pthread_mutex_unlock(&spu->mutex);
+	write(spu->pipe[1],&action, sizeof(int));
+
 }
