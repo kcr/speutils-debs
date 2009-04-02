@@ -1,9 +1,9 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 m4_define([speutils_major_version], [0])
-m4_define([speutils_minor_version], [0])
-m4_define([speutils_micro_version], [1])
-m4_define([speutils_interface_age], [1])
+m4_define([speutils_minor_version], [1])
+m4_define([speutils_micro_version], [0])
+m4_define([speutils_interface_age], [0])
 m4_define([speutils_binary_age],
           [m4_eval(speutils_minor_version + speutils_micro_version)])
 m4_define([speutils_version],

@@ -4,8 +4,8 @@ SUBDIRS = src spu
 libincludedir = $(includedir)/speutils
 
 libinclude_HEADERS = include/speutils/messages.h \
-			include/speutils/spemessage.h \
-			include/speutils/spethread.h
+		     include/speutils/spemessage.h \
+		     include/speutils/spethread.h
 
 lib_LTLIBRARIES = libspeutils.la
 libspeutils_la_LIBADD = src/libspemessage.la src/libspethread.la
