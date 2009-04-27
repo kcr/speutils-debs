@@ -1,4 +1,4 @@
-#SUBDIRS = src
+SUBDIRS = src
 
 libspeincludedir = $(prefix)/$(host_alias)/include/speutils
 

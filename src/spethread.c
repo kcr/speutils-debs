@@ -32,11 +32,22 @@
  */
 
 #include <speutils/spethread.h>
+#include <speutils/messages.h>
 #include <malloc.h>
 #include <string.h>
 #include <sys/epoll.h>
 
 #define MAX_EVENTS 2
+
+spu_thread_t *spu_thread_allocate()
+{
+    return memalign(128,sizeof(struct spu_thread_s));
+}
+
+void spu_thread_free(spu_thread_t *thread)
+{
+    free(thread);
+}
 
 /**
  * Function defines a general purpose spu thread
@@ -110,8 +121,14 @@ void *spu_loop_thread(void *arg) {
 			break;
 		}
 
-		spu->callback(spu->stop_info.result.spe_signal_code);
-
+        if (spu->stop_info.result.spe_signal_code&READ_MBOX)
+        {
+          int message;
+          spe_out_mbox_read(spu->ctx,&message,SPE_MBOX_ANY_BLOCKING);
+          spu->callback(message);
+        } else {
+		  spu->callback(spu->stop_info.result.spe_signal_code);
+        }
 		// Look at how much better it looks and feels using epoll.. ps this can still stall
 		int res ;
 

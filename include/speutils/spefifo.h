@@ -1,6 +1,8 @@
 /**
- * @file messages.h
- * @brief This header defines some standard spe/ppu messages used in speutils
+ * @file spefifo.h
+ * @brief This header defines structures and functions related to the speutils \
+ * @brief fifo interface
+ * @brief this file is a part of speutils
  * @author Kristian jerpetjøn
  *
  * Copyright (c) 2008, Kristian Jerpetjøn <kristian.jerpetjoen@gmail.com>
@@ -29,16 +31,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef __SPEFIFO_H
+#define __SPEFIFO_H
 
-#ifndef __MESSAGES_H
-#define __MESSAGES_H
+#include <stdint.h>
 
-/** Various state machine messages used in speutils*/
-//enum msg_state{STOP,RDY,WAIT,UPDATE,RUN,EXIT};
-#define STOP        0xCAFEBABE
-#define INVALID     0xDEADBEEF
-#define SLEEP       0x51EE4000
+struct fifo_s {
+    uint64_t task_fifo;
+    uint64_t ack_fifo;
+    uint32_t fifo_pos;
+    uint32_t ack_pos;
+    uint32_t max_entries;
+    uint32_t active;
+    uint16_t id;
+}__attribute((aligned(16)));
 
-#define READ_MBOX   1999
+typedef struct fifo_s fifo_t;
+
+#ifndef __SPU__
+void init_fifo(int entries, int entry_size, int spes);
+//fifo_t *allocate_fifo(int entries,int entry_size);
+//void free_fifo(fifo_t*);
+
+void stop_fifo();
+#endif
 
 #endif

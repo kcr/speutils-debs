@@ -23,6 +23,7 @@ AC_PATH_TOOL(EMBEDSPU, embedspu)
 
 AC_SUBST(DESTDIR)
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+		src/Makefile])
 
 AC_OUTPUT

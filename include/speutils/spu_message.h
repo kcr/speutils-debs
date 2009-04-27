@@ -39,6 +39,11 @@
 
 #include <speutils/messages.h>
 
+static inline void send_message(int *message) {
+    while (!spu_stat_out_mbox());
+    spu_writech(SPU_WrOutMbox,&message);
+}
+
 static inline void send_message_int(int *message){
 
 	while (spu_stat_out_intr_mbox() == 0);
@@ -49,6 +54,11 @@ static inline int wait_for_message_poll(){
 
 	while (spu_stat_in_mbox() == 0);
 	return spu_read_in_mbox();
+}
+
+static inline int message_check()
+{
+    return spu_stat_in_mbox();
 }
 
 #endif

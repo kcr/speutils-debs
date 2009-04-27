@@ -116,6 +116,10 @@ struct spu_thread_s {
 
 typedef struct spu_thread_s spu_thread_t;
 
+spu_thread_t *spu_thread_allocate();
+
+void spu_thread_free(spu_thread_t *thread);
+
 int start_spu_thread(spu_thread_t *spu);
 
 
