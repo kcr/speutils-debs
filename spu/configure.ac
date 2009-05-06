@@ -2,11 +2,13 @@ AC_INIT(spu-medialib/spe, VERSION)
 
 if test -d "/usr/spu-elf"; then
 	host_alias=spu-elf
-	AC_PROG_CC(spu-elf-gcc)
+	CC=spu-elf-gcc
+	#AC_PROG_CC(spu-elf-gcc)
 
 else
 	host_alias=spu
-	AC_PROG_CC(spu-gcc)
+	CC=spu-gcc
+	#AC_PROG_CC(spu-gcc)
 
 fi
 

@@ -2,7 +2,7 @@ INCLUDES = -I$(top_srcdir)/../include -I$(top_srcdir)/include
 
 noinst_PROGRAMS = spu_taskmanager
 
-spu_taskmanager_SOURCES=spu_taskmanager.c
+spu_taskmanager_SOURCES = spu_taskmanager.c spu_taskpipe.c
 
 noinst_DATA = spu_taskmanager.eo
 
@@ -12,3 +12,4 @@ noinst_DATA = spu_taskmanager.eo
 	cp $@ $@.o
 
 
+_SOURCES = spu_taskpipe.h

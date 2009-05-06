@@ -56,7 +56,7 @@ static inline int wait_for_message_poll(){
 	return spu_read_in_mbox();
 }
 
-static inline int message_check()
+static inline int check_for_message()
 {
     return spu_stat_in_mbox();
 }

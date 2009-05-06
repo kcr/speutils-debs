@@ -36,6 +36,10 @@
 
 #include <stdint.h>
 
+#define TASK_SIZE 128
+
+#define ROUND_ROBIN     0x0
+
 struct fifo_s {
     uint64_t task_fifo;
     uint64_t ack_fifo;
@@ -46,14 +50,29 @@ struct fifo_s {
     uint16_t id;
 }__attribute((aligned(16)));
 
+struct ack_s {
+    uint32_t task_id;
+    uint32_t retval;
+    uint64_t callback;
+
+}__attribute((aligned(16)));
+
 typedef struct fifo_s fifo_t;
 
 #ifndef __SPU__
-void init_fifo(int entries, int entry_size, int spes);
+void fifoInit(int fifo_size, int spes,int scheme);
 //fifo_t *allocate_fifo(int entries,int entry_size);
 //void free_fifo(fifo_t*);
 
-void stop_fifo();
+int fifoBegin(int command, int handle);
+
+void fifoAdd(int spe, int arg);
+
+void fifoKick(int spe);
+
+void fifoNoop();
+
+void fifoStop();
 #endif
 
 #endif
