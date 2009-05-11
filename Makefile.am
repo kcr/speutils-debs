@@ -1,4 +1,4 @@
-SUBDIRS = src spu tst
+SUBDIRS = shared src spu tst
 
 
 libincludedir = $(includedir)/speutils

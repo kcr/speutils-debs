@@ -2,9 +2,6 @@
 #include <speutils/spethread.h>
 #include <speutils/spemessage.h>
 
-
-
-
 int main (int narg,char *argc[])
 {
     int i;
@@ -22,8 +19,9 @@ int main (int narg,char *argc[])
     {
         fifoNoop();
     }
-    sleep(20);
-
+    //sleep(20);
+    while(!fifoIsEmpty());
+    //waitFifo()
     //free(thread);
 
 }

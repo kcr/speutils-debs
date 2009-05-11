@@ -8,6 +8,8 @@
 #include <speutils/speutils.h>
 #include <speutils/messages.h>
 
+#include <../shared/ring.h>
+
 #define ACK_CLEAR 0xc1ee7000
 //anyone know of anything with more spes ?
 #define MAX_SPES 16
@@ -21,6 +23,12 @@ struct fifo_entries_s {
     uint32_t *task_fifo;
     uint32_t entry_point;
     uint32_t task_entry;
+ //   uint32_t fifo_front;
+
+};
+
+struct ack_entries_s {
+    uint32_t ack_pos;
 };
 // struct fifo_entry_s {
 //     uint32_t position;
@@ -29,11 +37,17 @@ struct fifo_entries_s {
 struct host_fifo_s {
     int spes;
     int scheme;
+    ring_context_t *ringCTX[MAX_SPES];
     struct fifo_s *fifos[MAX_SPES];
-    struct fifo_entries_s entry[MAX_SPES];
+    uint32_t *entry_p[MAX_SPES];
+    uint32_t entry_count[MAX_SPES];
+
+   // struct fifo_entries_s entry[MAX_SPES];
+    struct ack_entries_s ack[MAX_SPES];
     spu_thread_t spu_thread[MAX_SPES];
     pthread_t pts;
     pthread_mutex_t mutex[MAX_SPES];
+    int isKicked[MAX_SPES];
 
 };
 
@@ -80,11 +94,15 @@ int selectfifo()
     switch(hostfifo.scheme)
     {
         case ROUND_ROBIN:
-            printf("ppu: round_robin\n");
+//             printf("ppu: round_robin\n");
         default:
-            current_spe++;
-            if ( current_spe >= hostfifo.spes )
-                current_spe=0;
+
+            do {
+                current_spe++;
+                if ( current_spe >= hostfifo.spes )
+                    current_spe=0;
+                //repeat untill there is a free slot
+            } while(!ringHasFree(hostfifo.ringCTX[current_spe]));
             retval=current_spe;
             break;
     }
@@ -94,16 +112,33 @@ int selectfifo()
 void *fifothread(void *argp)
 {
     int i;
+    int32_t *ack;
     while(1){
         usleep(1000);
         for (i=0; i< hostfifo.spes;i++)
         {
-            uint32_t *ack=hostfifo.fifos[i]->ack_fifo;
+            //uint32_t *ack=hostfifo.fifos[i]->ack_fifo;
+                ack = (uint32_t *)((char *)(hostfifo.fifos[i]->ack_fifo +ringGetBack(hostfifo.ringCTX[i])*ACK_SIZE));
+//                 printf("ack_pos %x\n",ack);
         //    printf("checking at pos 0x%08x\n",&ack[hostfifo.fifos[i]->ack_pos*(ACK_SIZE/sizeof(uint32_t))]);
-            while (ack[hostfifo.fifos[i]->ack_pos*(ACK_SIZE/sizeof(uint32_t))] != ACK_CLEAR)
+            //while (ack[hostfifo.ack[i].ack_pos*(ACK_SIZE/sizeof(uint32_t))] != ACK_CLEAR)
+            while (ack[0] != ACK_CLEAR)
             {
-                printf("ACK returned to fifo %d at pos %d\n",i,hostfifo.fifos[i]->ack_pos);
-                hostfifo.fifos[i]->ack_pos++;
+            //    printf("ACK returned to fifo %d at pos %d\n",i,ringGetBack(hostfifo.ringCTX[i]));
+                //clear ack entry
+              //  ack[hostfifo.ack[i].ack_pos*(ACK_SIZE/sizeof(uint32_t))] = ACK_CLEAR;
+//                 u = (uint32_t *)((char *)(ringGetBack(hostfifo.ringCTX[i])*ACK_SIZE));
+                ack[0]=ACK_CLEAR;
+               // (uint32_t *)((char *)(ringGetBack(hostfifo.ringCTX[i])*ACK_SIZE))[0] = ACK_CLEAR;
+                ringIncBack(hostfifo.ringCTX[i]);
+
+                ack = (uint32_t *)((char *)(hostfifo.fifos[i]->ack_fifo +ringGetBack(hostfifo.ringCTX[i])*ACK_SIZE));
+                //increment counter
+//                 hostfifo.ack[i].ack_pos++;
+//                 if (hostfifo.ack[i].ack_pos >= hostfifo.fifos[i]->max_entries)
+//                 {
+//                     hostfifo.ack[i].ack_pos=0;
+//                 }
             }
 
         }
@@ -130,16 +165,19 @@ void fifoInit(int fifo_size, int spes, int scheme) {
 
 
     for (i = 0; i < spes; i++) {
+        //asume we start at a clean point
+        hostfifo.isKicked[i]=1;
 
         hostfifo.fifos[i] = allocate_fifo(fifo_size/TASK_SIZE, TASK_SIZE);
-        hostfifo.fifos[i]->fifo_pos = 0;
-        hostfifo.fifos[i]->ack_pos = 0;
+
         hostfifo.fifos[i]->max_entries = fifo_size/TASK_SIZE;
         hostfifo.fifos[i]->active = 1;
         hostfifo.fifos[i]->id = i;
-        hostfifo.entry[i].task_fifo = hostfifo.fifos[i]->task_fifo;
-        hostfifo.entry[i].entry_point=0;
-        hostfifo.entry[i].task_entry=0;
+        hostfifo.ringCTX[i]=ringInitContext(fifo_size/TASK_SIZE);
+
+        hostfifo.ack[i].ack_pos=0;
+
+        //start the spu
         hostfifo.spu_thread[i].type = THREAD_LOOP;
         hostfifo.spu_thread[i].argp = hostfifo.fifos[i];
         hostfifo.spu_thread[i].envp = sizeof(struct fifo_s);
@@ -164,38 +202,62 @@ int fifoBegin(int command, int handle)
     int spe=selectfifo();
 
     pthread_mutex_lock(&hostfifo.mutex[spe]);
+    //if not kicked increment
+    if (!hostfifo.isKicked[spe])
+        ringIncFront(hostfifo.ringCTX[spe]);
+    //ring front is not kicked
+    hostfifo.isKicked[spe]=0;
+    hostfifo.entry_count[spe]=0;
+    hostfifo.entry_p[spe] =(uint32_t *) ((char *)(hostfifo.fifos[spe]->task_fifo) + ringGetFront(hostfifo.ringCTX[spe])*(TASK_SIZE));
+ //   hostfifo.count[i]=0;
+  /*  if (hostfifo.entry[spe].task_entry >= hostfifo.fifos[spe]->max_entries)
+        hostfifo.entry[spe].task_entry=0;*/
+        //TODO rewind
+ //   printf("ppu fifobegin at entry point %d\n",hostfifo.entry[spe].entry_point);
 
-    hostfifo.entry[spe].entry_point+=((TASK_SIZE/32)-1);
+ //   hostfifo.entry[spe].entry_point =((TASK_SIZE/4)-1);
+//     printf("ppu fifobegin at entry point rounded up %d\n",hostfifo.entry[spe].entry_point);
+//    hostfifo.entry[spe].entry_point = (hostfifo.entry[spe].entry_point &(~0x1F));
 
-    hostfifo.entry[spe].entry_point&=~((TASK_SIZE/32))
-            ;
-    hostfifo.entry[spe].task_fifo[hostfifo.entry[spe].entry_point] = command;
-    hostfifo.entry[spe].task_fifo[hostfifo.entry[spe].entry_point+1] = handle;
-    hostfifo.entry[spe].entry_point+=2;
+//     printf("ppu fifobegin at entry point %x\n",&hostfifo.entry_p[spe][0]);
+    *(hostfifo.entry_p[spe] + hostfifo.entry_count[spe])=command;
+    hostfifo.entry_count[spe]++;
+    hostfifo.entry_p[spe][1]=handle;
+    hostfifo.entry_count[spe]++;
+  //  hostfifo.entry[spe].task_fifo[hostfifo.entry[spe].entry_point] = command;
+
+  //  hostfifo.entry[spe].task_fifo[hostfifo.entry[spe].entry_point+1] = handle;
+  //  hostfifo.entry[spe].entry_point+=2;
     return spe;
 //     hostfifo.fifos[fifo]->fifo_pos+=2;
 }
 
 void fifoAdd(int spe, int arg)
 {
+    if (hostfifo.entry_count[spe]+1 != TASK_SIZE/4)
+        hostfifo.entry_p[spe][hostfifo.entry_count[spe]]=arg;
     //if (hostfifo.entry[spe].entry_point == (TASK_SIZE/32))
 
-    hostfifo.entry[spe].task_fifo[hostfifo.entry[spe].entry_point] = arg;
-    hostfifo.entry[spe].entry_point++;
+  //  hostfifo.entry[spe].task_fifo[hostfifo.entry[spe].entry_point] = arg;
+  //  hostfifo.entry[spe].entry_point++;
 }
 
 void fifoKick(int spe)
 {
-    printf("ppu: fifoKick: spe %d, entry %d, entry_point %d\n",spe,hostfifo.entry[spe].task_entry,hostfifo.entry[spe].entry_point);
-    printf("ppu: divider %d\n",TASK_SIZE/4);
-    hostfifo.entry[spe].task_entry = (hostfifo.entry[spe].entry_point / (TASK_SIZE/4));
-    printf("ppu: spe %d, entry %d\n",spe,hostfifo.entry[spe].task_entry);
+ //   printf("ppu: fifoKick: spe %d, entry %d, entry_point %d\n",spe,hostfifo.entry[spe].task_entry,hostfifo.entry[spe].entry_point);
+ //   printf("ppu: divider %d\n",TASK_SIZE/4);
+
+  //  hostfifo.entry[spe].task_entry = (hostfifo.entry[spe].entry_point>>5);
+
+ //   printf("ppu: spe %d, entry %d\n",spe,hostfifo.entry[spe].task_entry);
     //TODO add check if entry +1 > back..
-    send_message(&hostfifo.spu_thread[spe],hostfifo.entry[spe].task_entry);
-
-    hostfifo.entry[spe].entry_point+=((TASK_SIZE/32)-1);
-    hostfifo.entry[spe].entry_point&=~((TASK_SIZE/32));
-
+   // send_message(&hostfifo.spu_thread[spe],hostfifo.entry[spe].task_entry);
+    send_message(&hostfifo.spu_thread[spe],ringGetFront(hostfifo.ringCTX[spe]));
+//     hostfifo.entry[spe].entry_point+=((TASK_SIZE/4)-2);
+//     hostfifo.entry[spe].entry_point&=~((TASK_SIZE/4));
+    //fifo is kicked
+    hostfifo.isKicked[spe]=1;
+    ringIncFront(hostfifo.ringCTX[spe]);
     pthread_mutex_unlock(&hostfifo.mutex[spe]);
 }
 
@@ -208,7 +270,7 @@ void fifoNoop()
   // int spe=selectfifo();
 
 
-   printf("ppu: sending noop to spe %d\n",spe);
+//    printf("ppu: sending noop to spe %d\n",spe);
 
  //  pthread_mutex_unlock(&hostfifo.mutex[spe]);
 
@@ -218,6 +280,37 @@ void fifoStop()
 {
 
 
+}
+
+int fifoIsEmpty()
+{
+    int i;
+    int res=1;
+    for (i = 0 ; i < hostfifo.spes; i++)
+    {
+        if (ringHasRemaining(hostfifo.ringCTX[i])) {
+            return 0;
+
+         //   printf("fifo %d has remaining\n",i);
+        }
+    }
+    return 1;
+}
+
+void fifoWait()
+{
+    int i;
+    int res;
+    do {
+        res=0;
+        for (i = 0 ; i < hostfifo.spes; i++)
+        {
+            if (ringHasRemaining(hostfifo.ringCTX[i])) {
+                res+=1;
+                printf("fifo %d has remaining\n",i);
+            }
+        }
+    } while (res != 0);
 }
 /*
 void fifoFree(fifo_t* fifo) {

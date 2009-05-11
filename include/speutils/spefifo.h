@@ -43,8 +43,6 @@
 struct fifo_s {
     uint64_t task_fifo;
     uint64_t ack_fifo;
-    uint32_t fifo_pos;
-    uint32_t ack_pos;
     uint32_t max_entries;
     uint32_t active;
     uint16_t id;
@@ -61,8 +59,6 @@ typedef struct fifo_s fifo_t;
 
 #ifndef __SPU__
 void fifoInit(int fifo_size, int spes,int scheme);
-//fifo_t *allocate_fifo(int entries,int entry_size);
-//void free_fifo(fifo_t*);
 
 int fifoBegin(int command, int handle);
 
@@ -72,7 +68,13 @@ void fifoKick(int spe);
 
 void fifoNoop();
 
+int fifoIsEmpty();
+
+void fifoWait();
+
 void fifoStop();
+
+
 #endif
 
 #endif
