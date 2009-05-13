@@ -43,10 +43,18 @@
 struct fifo_s {
     uint64_t task_fifo;
     uint64_t ack_fifo;
+    uint64_t atomic;
     uint32_t max_entries;
     uint32_t active;
     uint16_t id;
 }__attribute((aligned(16)));
+
+
+struct atomic_s {
+    uint32_t count;
+    uint32_t state;
+    char unused[120];
+}__attribute((aligned(128)));
 
 struct ack_s {
     uint32_t task_id;

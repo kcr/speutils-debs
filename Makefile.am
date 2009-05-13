@@ -1,6 +1,6 @@
 SUBDIRS = shared src spu tst
 
-
+ACLOCAL_AMFLAGS = -I m4
 libincludedir = $(includedir)/speutils
 
 libinclude_HEADERS = include/speutils/messages.h \

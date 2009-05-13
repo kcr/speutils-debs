@@ -16,12 +16,18 @@ m4_define([speutils_lt_age], [m4_eval(speutils_binary_age - speutils_interface_a
 AC_PREREQ(2.61)
 AC_INIT(speutils, [speutils_version], somewhere)
 # Checks for programs.
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(dist-bzip2 no-dist-gzip foreign)
+AM_MAINTAINER_MODE
+
 
 m4_undefine([AC_PROG_CXX])
 m4_defun([AC_PROG_CXX],[])
 m4_undefine([AC_PROG_F77])
 m4_defun([AC_PROG_F77],[])
+
+AC_CONFIG_MACRO_DIR([m4])
+
+AC_CANONICAL_HOST
 
 AC_PROG_LIBTOOL
 # Checks for libraries.
