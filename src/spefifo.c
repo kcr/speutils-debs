@@ -211,7 +211,7 @@ int fifoBegin(int command, int handle)
 {
     int spe=selectfifo();
 
-    pthread_mutex_lock(&hostfifo.mutex[spe]);
+ //   pthread_mutex_lock(&hostfifo.mutex[spe]);
     //if not kicked increment
     if (!hostfifo.isKicked[spe])
         ringIncFront(hostfifo.ringCTX[spe]);
@@ -259,7 +259,7 @@ void fifoKick(int spe)
 
     hostfifo.isKicked[spe]=1;
     ringIncFront(hostfifo.ringCTX[spe]);
-    pthread_mutex_unlock(&hostfifo.mutex[spe]);
+//    pthread_mutex_unlock(&hostfifo.mutex[spe]);
 }
 
 
