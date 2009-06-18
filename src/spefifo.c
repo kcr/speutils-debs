@@ -130,15 +130,18 @@ void *fifothread(void *argp)
     int i=spe;
     int32_t *ack;
     while(1){
-        usleep(50);
-      //  for (i=0; i< hostfifo.spes;i++)
-      //  {
+       // shed_yield();
+        usleep(25);
+        //usleep(50);
+        for (i=0; i< hostfifo.spes;i++)
+        {
 
                 ack = (uint32_t *)((char *)(hostfifo.fifos[i]->ack_fifo +ringGetBack(hostfifo.ringCTX[i])*ACK_SIZE));
 
             while (ack[0] != ACK_CLEAR)
             {
                 ack[0]=ACK_CLEAR;
+//                 printf("retval %d\n", ack[1]);
                // (uint32_t *)((char *)(ringGetBack(hostfifo.ringCTX[i])*ACK_SIZE))[0] = ACK_CLEAR;
                 ringIncBack(hostfifo.ringCTX[i]);
 
@@ -146,7 +149,7 @@ void *fifothread(void *argp)
 
             }
 
-        //}
+        }
     }
 
 }
@@ -198,10 +201,10 @@ void fifoInit(int fifo_size, int spes, int scheme) {
     }
     //TODO start monitoring thread..
     int retval=0;
-    for (i = 0 ; i < spes; i++) {
+   // for (i = 0 ; i < spes; i++) {
 
-        retval += pthread_create(&hostfifo.pts,0,fifothread,hostfifo.fifos[i]->id);
-    }
+        retval += pthread_create(&hostfifo.pts,0,fifothread,0);
+    //}
     if (retval < 0 )
         printf("ppu: failed to start pthread\n");
 
@@ -209,7 +212,7 @@ void fifoInit(int fifo_size, int spes, int scheme) {
 
 int fifoBegin(int command, int handle)
 {
-    int spe=selectfifo();
+    int spe = selectfifo();
 
  //   pthread_mutex_lock(&hostfifo.mutex[spe]);
     //if not kicked increment
@@ -230,7 +233,8 @@ int fifoBegin(int command, int handle)
 //    hostfifo.entry[spe].entry_point = (hostfifo.entry[spe].entry_point &(~0x1F));
 
 //     printf("ppu fifobegin at entry point %x\n",&hostfifo.entry_p[spe][0]);
-    *(hostfifo.entry_p[spe] + hostfifo.entry_count[spe])=command;
+    //TODO fix le bugg
+    hostfifo.entry_p[spe][0]=command;
     hostfifo.entry_count[spe]++;
     hostfifo.entry_p[spe][1]=handle;
     hostfifo.entry_count[spe]++;
@@ -244,8 +248,10 @@ int fifoBegin(int command, int handle)
 
 void fifoAdd(int spe, int arg)
 {
-    if (hostfifo.entry_count[spe]+1 != TASK_SIZE/4)
+    if (hostfifo.entry_count[spe]+1 != TASK_SIZE/4) {
         hostfifo.entry_p[spe][hostfifo.entry_count[spe]]=arg;
+        hostfifo.entry_count[spe]++;
+    }
 }
 
 void fifoKick(int spe)
@@ -275,6 +281,15 @@ void fifoNoop()
 
  //  pthread_mutex_unlock(&hostfifo.mutex[spe]);
 
+}
+
+void fifo_addition(int adds)
+{
+    int spe = fifoBegin(ADD,0x1ee7C0DE);
+    fifoAdd(spe, adds);
+    fifoAdd(spe,0x01);
+    fifoAdd(spe,0x02);
+    fifoKick(spe);
 }
 
 void fifoStop()

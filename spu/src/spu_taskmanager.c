@@ -54,6 +54,9 @@ void stage2()
 
     if (pipe[context].active) {
         dmaWaitTag(pipe[context].id);
+//         int *task = pipe[context].task;
+//         printf("stage2 task command 0x%08x\n",task[0]);
+//         printf("stage2 task handle 0x%08x\n",task[1]);
         //here we will fetch program and data
     }
 }
@@ -64,6 +67,33 @@ void stage3()
     int context=(cycle + 2)%STAGES;
     if (pipe[context].active){
         //here we will execute the program with the data
+        //if(TYPE==ADD)
+
+        //TODO HACK REMOVE THIS
+        int *task = pipe[context].task;
+        int command = task[0];
+      //  printf("stage3 task command %d\n",command);
+        if (command == ADD) {
+//             printf("ADD TASK\n");
+            int adds = task[2];
+            int arg1 = task[3];
+            int arg2 = task[4];
+            int res;
+            volatile int i;
+
+    //        printf("spu: adds %d\n",adds);
+
+            for (i = 0 ; i < adds ; i++)
+            {
+                res +=arg1+i + arg2;
+            }
+
+            pipe[context].ack->retval=res;
+       //     printf("res %d\n",res);
+        }
+
+
+
     }
 }
 

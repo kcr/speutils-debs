@@ -76,6 +76,8 @@ void fifoKick(int spe);
 
 void fifoNoop();
 
+void fifo_addition(int val);
+
 int fifoIsEmpty();
 
 void fifoWait();
