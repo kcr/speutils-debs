@@ -35,11 +35,13 @@
 
 /** Various state machine messages used in speutils*/
 //enum msg_state{STOP,RDY,WAIT,UPDATE,RUN,EXIT};
-#define NOOP        0x1337C0DE
-#define ADD         0xC0DE0ADD
-#define STOP        0xCAFEBABE
-#define INVALID     0xDEADBEEF
-#define SLEEP       0x51EE4555
+#define NOOP                0x1337C0DE
+#define ADD                 0xC0DE0ADD
+#define STOP                0xCAFEBABE
+#define INVALID             0xDEADBEEF
+#define SLEEP               0x51EE4555
+#define REGISTER_PROGRAM    0x73215737 /*Register*/
+#define UNREGISTER_PROGRAM  0x77777777 /*unregister*/
 
 
 #define READ_MBOX   1999

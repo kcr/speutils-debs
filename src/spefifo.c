@@ -328,6 +328,39 @@ void fifoWait()
         }
     } while(res != 0);
 }
+
+/**
+ * This registers a spu program to the fifo_s
+ * the program has to be aligned in memory to 16 byte boundaries
+ */
+int fifoRegisterProgram(void *program, int size)
+{
+    uint64_t addr;
+
+    int spe;
+
+    addr = ((uint64_t)(unsigned long)program);
+
+
+    for (spe = 0; spe < hostfifo.spes;spe++)
+    {
+        hostfifo.isKicked[spe]=0;
+        hostfifo.entry_count[spe]=0;
+        hostfifo.entry_p[spe] =(uint32_t *) ((char *)(hostfifo.fifos[spe]->task_fifo) + ringGetFront(hostfifo.ringCTX[spe])*(TASK_SIZE));
+
+        hostfifo.entry_p[spe][0]=REGISTER_PROGRAM;
+        hostfifo.entry_count[spe]++;
+        hostfifo.entry_p[spe][1]=size;
+        hostfifo.entry_count[spe]++;
+        hostfifo.entry_p[spe][2]=(uint32_t)(addr>>32);
+        hostfifo.entry_count[spe]++;
+        hostfifo.entry_p[spe][3]=(uint32_t)(addr);
+        hostfifo.entry_count[spe]++;
+        fifoKick(spe);
+    }
+    //memory location is used as address
+    return (uint32_t)addr;
+}
 /*
 void fifoFree(fifo_t* fifo) {
     free(fifo->task_fifo);

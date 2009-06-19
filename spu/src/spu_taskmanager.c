@@ -11,6 +11,10 @@
 #include "spu_taskmanager.h"
 #include "spu_taskpipe.h"
 
+//WTF
+#include "../../shared/pic.h"
+#include "../../shared/linkedlist.h"
+
 #define STAGES 4
 
 static int current_task=0;
@@ -24,6 +28,9 @@ static struct pipe_entry_s pipe[STAGES];
 static struct fifo_s *fifo;
 
 static struct atomic_s *atomic;
+
+static struct list_s *programs;
+
 
 void check_tasks()
 {
@@ -51,10 +58,57 @@ void stage2()
 {
     int i;
     int context=(cycle+1)%STAGES;
-
+    struct program_s *prog;
+    //fetch program and data ????
+    //TODO if so define how data is specified in the command structure
     if (pipe[context].active) {
         dmaWaitTag(pipe[context].id);
-//         int *task = pipe[context].task;
+
+        int *task =pipe[context].task;
+        switch (task[0])
+        {
+            case REGISTER_PROGRAM:
+                printf("registering program...\n");
+                struct program_s *program = malloc(sizeof(program));
+                program->size = ((task[1]+15)&(~0xF)); /**round off in case fuckup*/
+                program->id = task[3];
+                program->LS = NULL;
+                program->EA = (task[2]<<32) | task[3];
+                break;
+
+            case ADD:
+                break;
+
+            default:
+
+
+                prog = listFirstEntry(programs);
+
+                while (prog->id != task[0])
+                {
+                    prog = listNextEntry(program);
+                    if (prog == NULL)
+                        break;
+                }
+
+                if (prog==NULL){
+                    printf("missing program 0x%08x\n",task[0]);
+                    break;
+                }
+
+                if (prog->LS == NULL)
+                {
+                    //! attempt to allocate local store
+                    prog->LS == memalign(128,prog->size);
+
+                    //! get if success
+                    if (prog->LS != NULL)
+                        dmaGet(prog->LS,prog->EA,prog->size,pipe[context].id);
+                }
+                break;
+        }
+
+//         int *task = pipe[con.text].task;
 //         printf("stage2 task command 0x%08x\n",task[0]);
 //         printf("stage2 task handle 0x%08x\n",task[1]);
         //here we will fetch program and data
@@ -65,35 +119,68 @@ void stage2()
 void stage3()
 {
     int context=(cycle + 2)%STAGES;
+    program_t *prog;
+    int res;
+    volatile int i;
     if (pipe[context].active){
         //here we will execute the program with the data
         //if(TYPE==ADD)
 
         //TODO HACK REMOVE THIS
         int *task = pipe[context].task;
-        int command = task[0];
-      //  printf("stage3 task command %d\n",command);
-        if (command == ADD) {
-//             printf("ADD TASK\n");
-            int adds = task[2];
-            int arg1 = task[3];
-            int arg2 = task[4];
-            int res;
-            volatile int i;
+        switch(task[0])
+        {
 
-    //        printf("spu: adds %d\n",adds);
+            case ADD:
+                //int adds = task[2];
+                //int arg1 = task[3];
+                //int arg2 = task[4];
 
-            for (i = 0 ; i < adds ; i++)
-            {
-                res +=arg1+i + arg2;
-            }
+                for (i = 0 ; i < task[2] ; i++)
+                {
+                    res +=task[3]+i + task[4];
+                }
 
-            pipe[context].ack->retval=res;
-       //     printf("res %d\n",res);
+                pipe[context].ack->retval=res;
+                break;
+        //TODO I SAID REMOVE THIS HACK
+            case NOOP:
+                break;
+
+            default:
+
+                prog = listFirstEntry(programs);
+
+                while (prog->id != task[0])
+                {
+                    prog = listNextEntry(programs);
+                    if (prog == NULL)
+                        break;
+                }
+
+                if (prog == NULL){
+                    printf("missing program 0x%08x\n",task[0]);
+                    break;
+                }
+
+                if (prog->LS == NULL)
+                {
+                    prog->LS == memalign(128,prog->size);
+
+                    if (prog->LS != NULL)
+                        dmaGetnWait(prog->LS,prog->EA,prog->size,pipe[context].id);
+                    else
+                        printf("BAAAAD robot\n");
+                }
+
+                //todo fix this
+                pic_t pic = (pic_t*)prog->LS;
+                pic(pipe[context].task,NULL,NULL,pipe[context].ack);
+
+                break;
+
+
         }
-
-
-
     }
 }
 
@@ -139,6 +226,9 @@ int main(unsigned long long speid, unsigned long long argp, unsigned long long e
     printf("active %d\n",fifo->active);
     tstate.front = tstate.in_back= tstate.out_back = fifo->max_entries -1;
     current_state=WAIT;
+
+
+    programs == listInit();
 
     do {
         switch (current_state) {
