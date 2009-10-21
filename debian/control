@@ -1,0 +1,13 @@
+Source: speutils
+Maintainer: Karl Ramm <kcr@1ts.org>
+Build-Depends: debhelper (>= 7), gcc-spu, binutils-spu, newlib-spu, spu-tools
+
+Package: libspeutils0
+Architecture: powerpc
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: speutils shared library for the cell processor
+
+Package: libspeutils-dev
+Depends: libspeutils0 (= ${binary:Version}), libc6-dev, ${misc:Depends}
+Architecture: powerpc
+Description: speutils dev library for the cell processor

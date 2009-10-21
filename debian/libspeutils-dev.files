@@ -1,0 +1,7 @@
+usr/lib/libspeutils.so
+usr/lib/libspeutils.a
+usr/lib/libspeutils.la
+usr/lib/pkgconfig
+usr/spu
+usr/bin
+usr/include

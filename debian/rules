@@ -1,0 +1,54 @@
+#!/usr/bin/make -f
+
+configure: debian/configure-stamp
+
+debian/configure-stamp:
+	(cd spu && aclocal && libtoolize --copy --force && automake --add-missing --foreign && autoconf)
+	aclocal && libtoolize --copy --force && automake --add-missing --foreign && autoconf
+	(cd spu && ./configure --prefix=/usr --host=spu)
+	./configure --prefix=/usr
+	touch debian/configure-stamp
+
+build: debian/build-stamp
+
+debian/build-stamp: debian/configure-stamp
+	make
+	touch debian/build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	-make clean
+	-rm -rf $(foreach d,. spu,$(foreach f,config.* configure depcomp install-sh libtool ltmain.sh missing m4 aclocal.m4,$(d)/$(f)))
+	-rm -rf $(foreach d,. src tst shared spu spu/src,$(foreach f,Makefile Makefile.in .deps,$(d)/$(f)))
+	-rm -rf libspeutils.pc spu/src/spu_taskmanager.eo
+	-rm debian/*-stamp
+	dh_clean -v
+
+install: debian/install-stamp
+
+debian/install-stamp: debian/build-stamp
+	dh_testdir
+	dh_testroot
+	make DESTDIR=$(shell pwd)/debian/tmp install
+	touch debian/install-stamp
+
+binary: binary-arch
+
+binary-indep:
+
+binary-arch: debian/install-stamp
+	dh_testdir
+	dh_testroot
+	dh_movefiles -a
+	dh_installdocs -a
+	dh_installchangelogs -a
+	dh_strip -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_makeshlibs -a
+	dh_shlibdeps -a
+	dh_installdeb -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
